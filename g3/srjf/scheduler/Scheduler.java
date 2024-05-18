@@ -155,6 +155,9 @@ public class Scheduler {
   public void setThroughput(double throughput) {
     this.throughput = throughput;
   }
+  public PCB getProcess(String pID){
+    return processes.stream().filter(p -> p.getPID().equals(pID)).findFirst().get();
+  }
   
   public void saveSnapshot(String pId, int tInit, int tFinal) {
     if (!scheduleTable.isEmpty() && scheduleTable.getLast().getProcessId().equals(pId))
@@ -162,11 +165,13 @@ public class Scheduler {
     else
       scheduleTable.addLast(new ExecutionSnapshot(pId, tInit, tFinal));
   }
+
   public void computeResponseTime() {
     var processSnapshot = this.getScheduleTable();
     var it = processSnapshot.iterator();
     while (it.hasNext()) {
       var curr = it.next();
+      if(curr.getProcessId().contains("--")) continue;
       if (!responseTime.containsKey(curr.getProcessId())) {
         responseTime.put(curr.getProcessId(), curr.gettInitial());
       }
@@ -177,8 +182,55 @@ public class Scheduler {
     while (mapIt.hasNext()) {
       sum += mapIt.next().getValue();
     }
-    
+
     this.averageResponseTime = sum / responseTime.size();
+  }
+  public void computeCompletionTime() {
+    var processSnapshot = this.getScheduleTable();
+    var it = processSnapshot.iterator();
+    while (it.hasNext()) {
+      var curr = it.next();
+      if(curr.getProcessId().contains("--")) continue;
+      completionTime.put(curr.getProcessId(), curr.gettFinal());
+    }
+  }
+  public void computeTurnAroundTime(){
+    var processSnapshot = this.getScheduleTable();
+    var it = processSnapshot.iterator();
+    while (it.hasNext()) {
+      var curr = it.next();
+      if(curr.getProcessId().contains("--")) continue;  
+      turnAroundTime.put(curr.getProcessId(), curr.gettFinal() - getProcess(curr.getProcessId()).getArrivalTime());
+    }
+
+    double sum = 0.0;
+    var mapIt = turnAroundTime.entrySet().iterator();
+    while (mapIt.hasNext()) {
+      sum += mapIt.next().getValue();
+    }
+
+    this.averageTurnAroundTime = sum / turnAroundTime.size();
+  }
+  public void computeWaitingTime(){
+    var processSnapshot = this.getScheduleTable();
+    var it = processSnapshot.iterator();
+    while (it.hasNext()) {
+      var curr = it.next();
+      if(curr.getProcessId().contains("--")) continue;
+      waitingTime.put(curr.getProcessId(),
+          turnAroundTime.get(curr.getProcessId()) - getProcess(curr.getProcessId()).getBurstTime());
+    }
+
+    double sum = 0.0;
+    var mapIt = waitingTime.entrySet().iterator();
+    while (mapIt.hasNext()) {
+      sum += mapIt.next().getValue();
+    }
+
+    this.averageWaitingTime = sum / waitingTime.size();
+  }
+  public void computeThroughput(){
+    this.throughput = (double) processes.size() / scheduleTable.getLast().gettFinal();
   }
   
   public static void print(LinkedList<ExecutionSnapshot> scheduleTable) {
@@ -245,16 +297,11 @@ public class Scheduler {
      * it to the ppq. ppq is a priority queue in which it is always guaranteed that element with highest 
      * priority is at the top/front (depends on the readyQueueComparator) provided 
      * 
-     * timer: used as clock to keep track of the time
-     * totTAT: keep track of the total turn around time of the processes
-     * totWT: keep track of total waiting time 
-     * 
+     * timer: used as clock to keep track of the cpu time
      **/
     var ppq = new PriorityQueue<PCB>(readyQueueComparator);
     ppq.add(processesCopy.removeFirst());
     var timer = 0;
-    var totTAT = 0;
-    var totWT = 0;
 
     // As long as ready-queue is not empty: the processor keeps executing
     while (!ppq.isEmpty()) {
@@ -266,7 +313,6 @@ public class Scheduler {
       if (ppq.peek().getArrivalTime() > timer) {
         saveSnapshot("--", timer, ppq.peek().getArrivalTime());
         timer = ppq.peek().getArrivalTime();
-        ppq.add(ppq.peek());
         continue;
       }
 
@@ -276,7 +322,7 @@ public class Scheduler {
       /**
        * In case of preemptive scheduling: Until the next processe's arrival time, the currently executing process
        * goes on execution unless it is done executing. We do this because we need to make sure if the next process
-       * has lower burst time/higher priority it will pre-empite the currently executing process.
+       * has lower burst time/higher priority it will pre-empete the currently executing process.
        * 
        * let's find the next arrival time : 
        *    If the processCopy is empty we have no next process
@@ -286,28 +332,19 @@ public class Scheduler {
 
       /**
        * Then:
-       *  - If the scheduling is not preemptive: the next coming process will not pre-empite the currently executing process
+       *  - If the scheduling is not preemptive: the next coming process will not pre-empete the currently executing process
        *  - Or If there is no more process to be executed
        *  - Or If the currently executing process gets done executing before the next process arrives
        * Execution can just continue and
        *    # Save the snapshot of the exectuion
        *    # Advance the timer by burst time of the executed process (time it took to execute the current process)
-       *    # Save - completion time
-       *           - turnaround time and
-       *           - waiting time for the executed process
-       *    # increment the total TAT and WT by the TAT and WT of the executed process
+       *    # Save - completion time and update the timer
        */
       if (!isPreemptive || processesCopy.isEmpty() || timer + currentProcess.getBurstTime() <= nextProcessArrivalTime) {
         saveSnapshot(currentProcess.getPID(), timer, timer + currentProcess.getBurstTime());
         timer += currentProcess.getBurstTime();
-        completionTime.put(currentProcess.getPID(), timer);
-        turnAroundTime.put(currentProcess.getPID(), timer - currentProcess.getArrivalTime());
-        waitingTime.put(currentProcess.getPID(), turnAroundTime.get(currentProcess.getPID()) - currentProcess.getBurstTime());
-
-        totTAT += turnAroundTime.get(currentProcess.getPID());
-        totWT += waitingTime.get(currentProcess.getPID());
       }
-      /**
+      /** Else
        * The scheduling is preemptive and there is next process to be executed and the current process will not be done executed,
        * thus we let the current process execute partly  or till the next process arrives and then push it back to ppq or the 
        * ready queue with the remaining burst time
@@ -333,19 +370,19 @@ public class Scheduler {
        * Check if processCopy is not empty and readyQueue is empty: this means that the process at the front of the process queue
        * has not arrived yet, thus we have to forcefully push it inside the ready queue: other wise the execution will cease before finishing
        */
-      if(!processesCopy.isEmpty() && ppq.isEmpty())
+      if (!processesCopy.isEmpty() && ppq.isEmpty())
         ppq.add(processesCopy.removeFirst());
     }
-
     /**
-     * Finally calculate the average turn around and waiting time of the execution from the total TAT and WT
-     * and also the response time, average response time, throughput
+     * Finally calculate completion, turnaround, waiting, and response times
+     * And the throughput of the cpu
      */
-    this.averageTurnAroundTime = (double) totTAT / processes.size();
-    this.averageWaitingTime = (double) totWT / processes.size();
-    this.throughput = (double) processes.size() / scheduleTable.getLast().gettFinal();
-    this.computeResponseTime();
-
+    
+    computeCompletionTime();
+    computeTurnAroundTime();
+    computeWaitingTime();
+    computeResponseTime();
+    computeThroughput();
     /* and return the execution snapshot */
     return this.scheduleTable;
   }

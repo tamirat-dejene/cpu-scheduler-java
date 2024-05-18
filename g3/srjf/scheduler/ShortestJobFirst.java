@@ -14,7 +14,7 @@ public class ShortestJobFirst extends Scheduler {
    * 
    * @param isPreemptive : tell the scheduler to wether the coming process can pre-empite the currently
    *                       executing process or not, default value is true
-   * @return snapshot of the process exection as a string linked list
+   * @return snapshot of the process exection as a linked list
    */
   public LinkedList<ExecutionSnapshot> shortestRemainingJobFirstScheduler(boolean isPreemptive) {
     /**
@@ -40,15 +40,18 @@ public class ShortestJobFirst extends Scheduler {
 
   static void test1() {
     var processes = Arrays.asList(
-        new PCB("P1", 12, 0),
+        new PCB("P1", 12, 1),
         new PCB("P2", 4, 2),
         new PCB("P3", 6, 3),
         new PCB("P4", 5, 8));
     var srjf = new ShortestJobFirst(processes);
-    var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(true);
+    var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(false);
     print(scheduleSnapshot);
-    print("Turnaround time", srjf.getResponseTime());
+    print(processes);
+    print("Turnaround time", srjf.getTurnAroundTime());
     print("Response time", srjf.getResponseTime());
+    print("Completion Time", srjf.getCompletionTime());
+    print("Waiting time", srjf.getWaitingTime());
 
     print("Average turnaround time", srjf.getAverageTurnAroundTime());
     print("Average waiting time", srjf.getAverageWaitingTime());
@@ -66,7 +69,7 @@ public class ShortestJobFirst extends Scheduler {
     var srjf = new ShortestJobFirst(processes);
     var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(false);
     print(scheduleSnapshot);
-    print("Turnaround time", srjf.getResponseTime());
+    print("Turnaround time", srjf.getTurnAroundTime());
     print("Response time", srjf.getResponseTime());
 
     print("Average turnaround time", srjf.getAverageTurnAroundTime());
@@ -84,7 +87,7 @@ public class ShortestJobFirst extends Scheduler {
     var srjf = new ShortestJobFirst(processes);
     var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(true);
     print(scheduleSnapshot);
-    print("Turnaround time", srjf.getResponseTime());
+    print("Turnaround time", srjf.getTurnAroundTime());
     print("Response time", srjf.getResponseTime());
 
     print("Average turnaround time", srjf.getAverageTurnAroundTime());
@@ -105,7 +108,7 @@ public class ShortestJobFirst extends Scheduler {
     var srjf = new ShortestJobFirst(processes);
     var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(false);
     print(scheduleSnapshot);
-    print("Turnaround time", srjf.getResponseTime());
+    print("Turnaround time", srjf.getTurnAroundTime());
     print("Response time", srjf.getResponseTime());
 
     print("Average turnaround time", srjf.getAverageTurnAroundTime());
@@ -126,7 +129,7 @@ public class ShortestJobFirst extends Scheduler {
     var srjf = new ShortestJobFirst(processes);
     var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(false);
     print(scheduleSnapshot);
-    print("Turnaround time", srjf.getResponseTime());
+    print("Turnaround time", srjf.getTurnAroundTime());
     print("Response time", srjf.getResponseTime());
 
     print("Average turnaround time", srjf.getAverageTurnAroundTime());
@@ -146,7 +149,7 @@ public class ShortestJobFirst extends Scheduler {
     var srjf = new ShortestJobFirst(processes);
     var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(true);
     print(scheduleSnapshot);
-    print("Turnaround time", srjf.getResponseTime());
+    print("Turnaround time", srjf.getTurnAroundTime());
     print("Response time", srjf.getResponseTime());
 
     print("Average turnaround time", srjf.getAverageTurnAroundTime());
@@ -167,7 +170,7 @@ public class ShortestJobFirst extends Scheduler {
     var srjf = new ShortestJobFirst(processes);
     var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(true);
     print(scheduleSnapshot);
-    print("Turnaround time", srjf.getResponseTime());
+    print("Turnaround time", srjf.getTurnAroundTime());
     print("Response time", srjf.getResponseTime());
 
     print("Average turnaround time", srjf.getAverageTurnAroundTime());
