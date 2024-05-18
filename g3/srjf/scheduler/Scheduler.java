@@ -155,17 +155,22 @@ public class Scheduler {
   public void setThroughput(double throughput) {
     this.throughput = throughput;
   }
+  
+  /**
+   * Returns the process control block (PCB) for a given process ID.
+   * 
+   * @param pID The process ID to search for.
+   * @return The PCB of the process with the specified ID.
+   */
   public PCB getProcess(String pID){
     return processes.stream().filter(p -> p.getPID().equals(pID)).findFirst().get();
   }
-  
   public void saveSnapshot(String pId, int tInit, int tFinal) {
     if (!scheduleTable.isEmpty() && scheduleTable.getLast().getProcessId().equals(pId))
       scheduleTable.getLast().settFinal(tFinal);
     else
       scheduleTable.addLast(new ExecutionSnapshot(pId, tInit, tFinal));
   }
-
   public void computeResponseTime() {
     var processSnapshot = this.getScheduleTable();
     var it = processSnapshot.iterator();
@@ -229,25 +234,37 @@ public class Scheduler {
 
     this.averageWaitingTime = sum / waitingTime.size();
   }
-  public void computeThroughput(){
+
+  public void computeThroughput() {
     this.throughput = (double) processes.size() / scheduleTable.getLast().gettFinal();
   }
   
+  /**
+   * Prints the process execution schedule.
+   * 
+   * @param scheduleTable The schedule table containing execution snapshots.
+   */
   public static void print(LinkedList<ExecutionSnapshot> scheduleTable) {
     System.out.println(" -------- Process Execution Schedule -------- ");
     // for (var row : scheduleTable)
     //   System.out.println("  [" + row.gettInitial() + " <- " + row.getProcessId() + " -> " + row.gettFinal() + "]");
-      var it = scheduleTable.iterator();
-      String row = "[";
-      
-      while (it.hasNext()) {
-        var curr = it.next();
-        row += curr.gettInitial() + " <- " + curr.getProcessId() + " -> ";
-      }
-      row += scheduleTable.getLast().gettFinal() + "]";
-      System.out.println(row);
-      System.out.println(" -------- ------- --------- -------- -------- ");
+    var it = scheduleTable.iterator();
+    String row = "[";
+
+    while (it.hasNext()) {
+      var curr = it.next();
+      row += curr.gettInitial() + " <- " + curr.getProcessId() + " -> ";
+    }
+    row += scheduleTable.getLast().gettFinal() + "]";
+    System.out.println(row);
+    System.out.println(" -------- ------- --------- -------- -------- ");
   }
+
+  /**
+   * Prints the list of processes.
+   * 
+   * @param processes The list of PCBs.
+   */
   public static void print(List<PCB> processes) {
     System.out.println(" ----------------- PROCESSES ---------------- ");
     System.out.println("PID   BurstT(ms)     ArrivalT(ms)     Priority");
@@ -259,12 +276,26 @@ public class Scheduler {
     }
     System.out.println(" -------------------------------------------- ");
   }
+
+  /**
+   * Prints a header and a map of data.
+   * 
+   * @param header  The header string.
+   * @param mapData The map of data to print.
+   */
   public static void print(String header, Map<String, Integer> mapData) {
     System.out.println(" ------ " + header + " ------ ");
     for (var entry : mapData.entrySet())
       System.out.println("   " + entry.getKey() + " : " + entry.getValue() + "ms");
     System.out.println(" ------ ---------- ----- ------ ");
   }
+  
+  /**
+   * Prints a header and a single value.
+   * 
+   * @param header The header string.
+   * @param value  The value to print.
+   */
   public static void print(String header, double value) {
     if(header.contains("Throughput") || header.contains("throughput"))
       System.out.println(" - " + header + ": " + value + "proc/ms");
@@ -285,7 +316,7 @@ public class Scheduler {
     
     // Check if the process queue is empty
     if (processesCopy.size() == 0) {
-      scheduleTable.addLast(new ExecutionSnapshot("Empty Process Block", 0, 0));
+      scheduleTable.addLast(new ExecutionSnapshot("--", 0, 0));
       return scheduleTable;
     }
 
