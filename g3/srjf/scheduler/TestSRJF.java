@@ -11,12 +11,12 @@ public class TestSRJF extends ShortestJobFirst {
 
   static void test1() {
     var processes = Arrays.asList(
-        new PCB("P1", 12, 0),
+        new PCB("P1", 12, 1),
         new PCB("P2", 4, 2),
         new PCB("P3", 6, 3),
         new PCB("P4", 5, 8));
     var srjf = new ShortestJobFirst(processes);
-    var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(false);
+    var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(true);
     print(processes);
     print(scheduleSnapshot);
     print("Turnaround time", srjf.getTurnAroundTime());
@@ -169,6 +169,6 @@ public class TestSRJF extends ShortestJobFirst {
   }
 
   public static void main(String[] args) {
-    test7();
+    test1();
   }
 }

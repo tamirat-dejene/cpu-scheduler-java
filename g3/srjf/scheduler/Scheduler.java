@@ -234,7 +234,6 @@ public class Scheduler {
 
     this.averageWaitingTime = sum / waitingTime.size();
   }
-
   public void computeThroughput() {
     this.throughput = (double) processes.size() / scheduleTable.getLast().gettFinal();
   }
