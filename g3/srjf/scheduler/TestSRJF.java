@@ -167,8 +167,32 @@ public class TestSRJF extends ShortestJobFirst {
     print("Average response time", srjf.getAverageResponseTime());
     print("Throughput", srjf.getThroughput());
   }
+  
+  static void test8() {
+    var processes = Arrays.asList(
+        new PCB("P1", 6, 2),
+        new PCB("P2", 2, 5),
+        new PCB("P3", 8, 1),
+        new PCB("P4", 3, 0),
+        new PCB("P5", 4, 4));
+  
+    var srjf = new ShortestJobFirst(processes);
+    var scheduleSnapshot = srjf.shortestRemainingJobFirstScheduler(true);
+    print(processes);
+    print(scheduleSnapshot);
+    print("Turnaround time", srjf.getTurnAroundTime());
+    print("Response time", srjf.getResponseTime());
+    print("Completion Time", srjf.getCompletionTime());
+    print("Waiting time", srjf.getWaitingTime());
+  
+    print("Average turnaround time", srjf.getAverageTurnAroundTime());
+    print("Average waiting time", srjf.getAverageWaitingTime());
+    print("Average response time", srjf.getAverageResponseTime());
+    print("Throughput", srjf.getThroughput());
+    
+  }
 
   public static void main(String[] args) {
-    test1();
+    test8();
   }
 }
